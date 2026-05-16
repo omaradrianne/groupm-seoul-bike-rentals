@@ -39,7 +39,7 @@ getwd()
 list.files()
 
 # Read CSV into a data frame
-df <- read.csv('SeoulBikeData.csv', fileEncoding = "CP949")
+df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 
 ############################
 # EDA
