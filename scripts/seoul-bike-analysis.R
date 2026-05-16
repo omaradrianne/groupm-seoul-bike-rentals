@@ -59,7 +59,7 @@ daily_df <- aggregate(Rented.Bike.Count ~ Date + Seasons,
 
 head(daily_df)
 
-ggplot(
+box1 <- ggplot(
   daily_df,
   aes(
     x=Seasons,
@@ -72,3 +72,5 @@ ggplot(
     title="Daily Bike Rental Count by Season",
     y="Rental Count"
   )
+
+ggsave("boxplot1.png", plot = box1)
