@@ -1,0 +1,48 @@
+################################################################################
+# MATH 167R — Statistical Programming with R
+# Instructor: Andrea Gottlieb
+# Group-M — Project
+# Date: May 20, 2026
+#
+# Group Members:
+# * Daisy Sandoval
+# * Arnav Chawla
+# * Omar Adrianne Bapora
+#
+# Description: Group project analyzing Seoul bike rental demand
+# Notes:
+# - 
+# -
+# -
+################################################################################
+
+############################
+# SETUP
+############################
+
+# (Optional but recommended) start clean:
+rm(list = ls())
+
+# (Optional) make printing easier to read:
+options(stringsAsFactors = FALSE)
+
+# If you use packages, load them here.
+# Only load what you actually use.
+
+# Get current working directory
+getwd() 
+
+# Change directory (if necessary)
+# setwd() 
+
+# List files inside directory
+list.files()
+
+# Read CSV into a data frame
+df <- read.csv('SeoulBikeData.csv', fileEncoding = "CP949")
+
+############################
+# EDA
+############################
+# Inspection
+str(df)
