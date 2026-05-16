@@ -19,6 +19,8 @@
 ############################
 # SETUP
 ############################
+# Load packages
+library(ggplot2)
 
 # (Optional but recommended) start clean:
 rm(list = ls())
@@ -46,3 +48,27 @@ df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 ############################
 # Inspection
 str(df)
+
+head(df)
+
+############################
+# PLOTS
+############################
+daily_df <- aggregate(Rented.Bike.Count ~ Date + Seasons,
+          data=df, sum)
+
+head(daily_df)
+
+ggplot(
+  daily_df,
+  aes(
+    x=Seasons,
+    y=Rented.Bike.Count,
+    fill=Seasons
+  )
+) +
+  geom_boxplot() + 
+  labs(
+    title="Daily Bike Rental Count by Season",
+    y="Rental Count"
+  )
