@@ -138,5 +138,7 @@ reg2
 # ggsave("regplot2.png", plot=reg2)
 
 # Display reg1 and reg2 side by side
-reg1 + reg2
+reg_panel1 = reg1 + reg2
+reg_panel1
+# ggsave("reg_panel1.png", plot=reg_panel1)
 
