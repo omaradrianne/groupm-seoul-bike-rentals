@@ -28,6 +28,8 @@ options(stringsAsFactors = FALSE)
 
 # Load packages
 library(ggplot2)
+# install.packages("patchwork")
+library(patchwork)
 
 # Get current working directory
 getwd() 
@@ -94,6 +96,47 @@ box1 <- ggplot(
   )
 box1
 # Save box plot as a png
-# ggsave("boxplot1.png", plot = box1)
+# ggsave("boxplot1.png", plot=box1)
 
+# Linear regression plots
+# Temperature vs Rental Count
+reg1 <- ggplot(
+  df,
+  aes(
+    x=Temp.c,
+    y=Count
+  )
+) +
+  geom_point(alpha=0.6, color="steelblue") +
+  geom_smooth(method="lm", se=FALSE, color="darkred") +
+  labs(
+    title="Temperature vs Hourly Rental Count",
+    x="Temperature (˚C)",
+    y="Rental Count"
+  )
+reg1
+# Save linear regression plot as a png
+# ggsave("regplot1.png", plot=reg1)
+
+# Humidity vs Rental Count
+reg2 <- ggplot(
+  df,
+  aes(
+    x=Humidity,
+    y=Count
+  )
+) +
+  geom_point(alpha=0.6, color="steelblue") +
+  geom_smooth(method="lm", se=FALSE, color="darkred") +
+  labs(
+    title="Humidity vs Hourly Rental Count",
+    x="Humidity",
+    y="Rental Count"
+  )
+reg2
+# Save linear regression plot as a png
+# ggsave("regplot2.png", plot=reg2)
+
+# Display reg1 and reg2 side by side
+reg1 + reg2
 
