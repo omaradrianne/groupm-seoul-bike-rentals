@@ -46,13 +46,6 @@ df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 ############################
 # EDA + Cleaning
 ############################
-# Inspection
-str(df)
-
-head(df)
-
-summary(df)
-
 # Rename variables
 colnames(df)
 colnames(df)[2] <- "Count" # RENTAL COUNT
@@ -65,6 +58,13 @@ colnames(df)[9] <- "Solar.Radiation.MJ.m2"
 colnames(df)[10] <- "Rainfall.mm"
 colnames(df)[11] <- "Snowfall.cm"
 colnames(df)
+
+# Inspection
+str(df)
+
+head(df)
+
+summary(df)
 
 # Correlation inspection
 cor(df$Temp.c, df$Count)
@@ -142,3 +142,11 @@ reg_panel1 = reg1 + reg2
 reg_panel1
 # ggsave("reg_panel1.png", plot=reg_panel1)
 
+############################
+# ANALYSIS
+############################
+# 95% confidence interval for the mean hourly rental count
+t.test(df$Count)$conf.int
+
+# Test whether mean hourly bike rentals differ between Holiday and no Holiday
+t.test(Count ~ Holiday, data=df)
