@@ -15,9 +15,9 @@
 # -
 ################################################################################
 
-############################
+###############################################################################################################
 # SETUP
-############################
+###############################################################################################################
 
 # (Optional but recommended) start clean:
 rm(list = ls())
@@ -90,11 +90,14 @@ table(df$Holiday)
 ################################################################################################################
 # Summary Statistics
 ################################################################################################################
+aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
+
 aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
 aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
 avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
 
+avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
 
 ################################################################################################################
 # PLOTS
@@ -193,8 +196,8 @@ box2
 #graph of bike rental trends by day of week
 trend_dayweek <- ggplot(
   avg_weekday, aes(x = Weekday, y = Count, group = 1)
-) + geom_line(color = "steelblue", linewidth = 1) +
-  geom_point(size = 3, color = "darkred") +
+) + geom_line(color = "cyan3", linewidth = 1) +
+  geom_point(size = 3, color = "coral2") +
   labs (
     title = "Bike Rental Trends by Day of the Week",
     x = "Day of Week",
@@ -231,6 +234,31 @@ box4
 # Temporal Patterns PLOTS
 ############################
 
+# trends on rentals based on time/hour of day
+avg_hour <- aggregate(Count ~ Hour, data = df, mean)
+
+trend_time <- ggplot(
+  avg_hour, aes(x = Hour, y = Count)
+) + geom_line(color = "coral2", linewidth = 1) +
+  labs(
+    title = "Average Hourly Bike Rentals",
+    x = "Time of Day",
+    y = "Average Rental Count"
+  )
+trend_time
+
+#trend on hour avg bike rentals, colored by Day Type
+trend_hour_day <- ggplot(
+  avg_hour_day,aes(x = Hour, y = Count, color = Day.Type)
+) + geom_line(linewidth = 1) +
+  labs(
+    title = "Hourly Rental Trend: Weekdays vs Weekends",
+    x = "Time of day",
+    y = "Average Rental Count"
+  )
+
+hour_day_plot
+
 
 ################################################################################################################
 # ANALYSIS
@@ -250,6 +278,19 @@ weather <- lm(
 
 summary(weather)
 
+# correlation matrix, relationship between variables
+cor(
+  df[, c(
+    "Count",
+    "Temp.c",
+    "Humidity",
+    "Wind.Speed.m/s",
+    "Visibility.10m",
+    "Rainfall.mm",
+    "Snowfall.cm"
+  )]
+)
+
 ############################
 # Holiday/Weekends
 ############################
@@ -260,9 +301,18 @@ t.test(Count ~ Day.Type, data = df)
 t.test(Count ~ Holiday, data = df)
 
 #ANOVA###################################
+
+#to see if avg rentals are different depending on day type and holiday
 model1 <- aov(Count ~ Day.Type * Holiday, data = df)
 summary(model1)
 
+#to see if avg rentals a different across days
+model2 <- aov(Count ~ Weekday, data = df)
+summary(model2)
+
+############################
+# Temporal (time of day)
+############################
 
 
 
