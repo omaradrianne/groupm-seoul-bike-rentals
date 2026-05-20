@@ -15,9 +15,9 @@
 # -
 ################################################################################
 
-############################
+###############################################################################################################
 # SETUP
-############################
+###############################################################################################################
 
 # (Optional but recommended) start clean:
 rm(list = ls())
@@ -82,6 +82,7 @@ df$Weekday <- factor (
   df$Weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 ) 
 
+
 #Checks
 table(df$Weekday)
 table(df$Day.Type)
@@ -90,11 +91,17 @@ table(df$Holiday)
 ################################################################################################################
 # Summary Statistics
 ################################################################################################################
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
+
 aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
 aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
 avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
 
+avg_windSpeed <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean)
+avg_windSpeedDay <- aggregate(`Visibility.10m` ~ Date, data = df, mean)
+
+avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
 
 ################################################################################################################
 # PLOTS
@@ -129,6 +136,35 @@ box1
 # Save box plot as a png
 # ggsave("boxplot1.png", plot=box1)
 
+# Box plot: Visibility & Season
+box2 <- ggplot(
+  df,
+  aes(
+    x= Seasons,
+    y= Visibility.10m,
+    fill=Seasons
+  )
+) +
+  geom_boxplot() + 
+  labs(
+    title="Visibility by Season",
+    x = "Season",
+    y = "Visibility (10m)"
+  )
+box2
+
+#Graph of Visbility by Season
+trend_visibilitySeason <- ggplot(
+  avg_windSpeed, aes(x = Seasons, y = Visibility.10m, group = 1)
+) + geom_line(color = "cyan3", linewidth = 1) +
+  geom_point(size = 3, color = "coral2") +
+  labs (
+    title = "Visibility Trends by Season",
+    x = "Season",
+    y = "Visibility (10m)"
+  )
+trend_visibilitySeason
+
 # Linear regression plots
 # Temperature vs Rental Count
 reg1 <- ggplot(
@@ -161,7 +197,7 @@ reg2 <- ggplot(
   geom_smooth(method="lm", se=FALSE, color="darkred") +
   labs(
     title="Humidity vs Hourly Rental Count",
-    x="Humidity",
+    x="Humidity (%)",
     y="Rental Count"
   )
 reg2
@@ -178,8 +214,8 @@ reg_panel1
 # Weekday/Holiday PLOTS
 ############################
 
-#boxplot of bike rentals by type of day
-box2 <- ggplot(
+#Boxplot: bike rentals by type of day
+box3 <- ggplot(
   df, aes(x = Day.Type, y = Count, fill = Day.Type)
 ) + 
   geom_boxplot() + 
@@ -188,22 +224,22 @@ box2 <- ggplot(
     x = "Day Type",
     y = "Rental Count"
   )
-box2
+box3
 
 #graph of bike rental trends by day of week
 trend_dayweek <- ggplot(
   avg_weekday, aes(x = Weekday, y = Count, group = 1)
-) + geom_line(color = "steelblue", linewidth = 1) +
-  geom_point(size = 3, color = "darkred") +
+) + geom_line(color = "cyan3", linewidth = 1) +
+  geom_point(size = 3, color = "coral2") +
   labs (
-    title = "Bike Rental Trends by Day of the Week",
+    title = "Hourly Bike Rental Trends by Day of the Week",
     x = "Day of Week",
-    y = "Average Bike Rental Count"
+    y = "Average Hourly Bike Rentals"
   )
 trend_dayweek
 
-# Bike rents Holidays
-box3 <- ggplot(
+#Boxplot: Bike rents Holidays
+box4 <- ggplot(
   df, aes(x = Holiday, y = Count, fill = Holiday)
 ) + 
   geom_boxplot() + 
@@ -212,11 +248,11 @@ box3 <- ggplot(
     x = "Holiday Status",
     y = "Rental Count"
   )
-box3
+box4
 
-# Bike rentals Weekdays vs Weekends & Holidays
+#Boxplot: Bike rentals Weekdays vs Weekends & Holidays
 
-box4 <- ggplot(
+box5 <- ggplot(
   df, aes(x = Day.Holiday, y = Count, fill = Day.Holiday)
 ) + 
   geom_boxplot() + 
@@ -225,11 +261,36 @@ box4 <- ggplot(
     x = "Day Type & Holiday Status",
     y = "Rental Count"
   )
-box4
+box5
 
 ############################
 # Temporal Patterns PLOTS
 ############################
+
+# trends on rentals based on time/hour of day
+avg_hour <- aggregate(Count ~ Hour, data = df, mean)
+
+trend_time <- ggplot(
+  avg_hour, aes(x = Hour, y = Count)
+) + geom_line(color = "coral2", linewidth = 1) +
+  labs(
+    title = "Average Hourly Bike Rentals",
+    x = "Time of Day",
+    y = "Average Rental Count"
+  )
+trend_time
+
+#trend on hour avg bike rentals, colored by Day Type
+trend_hourDay <- ggplot(
+  avg_hour_day,aes(x = Hour, y = Count, color = Day.Type)
+) + geom_line(linewidth = 1) +
+  labs(
+    title = "Hourly Rental Trend: Weekdays vs Weekends",
+    x = "Time of day",
+    y = "Average Rental Count"
+  )
+
+trend_hourDay
 
 
 ################################################################################################################
@@ -243,12 +304,28 @@ t.test(df$Count)$conf.int
 # WEATHER
 ############################
 weather <- lm(
-  Count ~ Temp.c + Humidity + Wind.Speed.m/s +
+  Count ~ Temp.c + Humidity + `Wind.Speed.m/s` +
     Visibility.10m + Rainfall.mm + Snowfall.cm,
   data = df
 )
-
 summary(weather)
+
+# correlation matrix, relationship between variables
+cor(
+  df[, c(
+    "Count",
+    "Temp.c",
+    "Humidity",
+    "Wind.Speed.m/s",
+    "Visibility.10m",
+    "Rainfall.mm",
+    "Snowfall.cm"
+  )]
+)
+
+#ANOVA to see if visibility varies across seasons
+model1 <- aov(Visibility.10m ~ Seasons, data = df)
+summary(model1)
 
 ############################
 # Holiday/Weekends
@@ -260,8 +337,19 @@ t.test(Count ~ Day.Type, data = df)
 t.test(Count ~ Holiday, data = df)
 
 #ANOVA###################################
-model1 <- aov(Count ~ Day.Type * Holiday, data = df)
-summary(model1)
+
+#to see if avg rentals are different depending on day type and holiday
+model2 <- aov(Count ~ Day.Type * Holiday, data = df)
+summary(model2)
+
+#ANOVA to see if avg rentals a different across days
+model3 <- aov(Count ~ Weekday, data = df)
+summary(model3)
+
+############################
+# Temporal (time of day)
+############################
+
 
 
 
