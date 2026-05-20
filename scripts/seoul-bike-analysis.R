@@ -6,7 +6,6 @@
 #
 # Group Members:
 # * Daisy Sandoval
-# * Arnav Chawla
 # * Omar Adrianne Bapora
 #
 # Description: Group project analyzing Seoul bike rental demand
@@ -43,9 +42,9 @@ list.files()
 # Read CSV into a data frame
 df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 
-############################
+################################################################################################################
 # EDA + Cleaning
-############################
+################################################################################################################
 # Rename variables
 colnames(df)
 colnames(df)[2] <- "Count" # RENTAL COUNT
@@ -61,9 +60,7 @@ colnames(df)
 
 # Inspection
 str(df)
-
 head(df)
-
 summary(df)
 
 # Correlation inspection
@@ -74,27 +71,39 @@ cor(df$Humidity, df$Count)
 df$Date <- as.Date(df$Date, format="%d/%m/%Y")
 df$Weekday <- weekdays(df$Date)
 
-df$Day.Type <- "Weekday" # make all days weekdays
-df$Day.Type[df$Weekday == "Saturday" | df$Weekday == "Sunday"] <- "Weekend" # set weekends
+df$Day.Type <- ifelse(
+  df$Weekday %in% c("Saturday", "Sunday"),
+  "Weekend", "Weekday"
+)
+
+df$Day.Holiday <- paste(df$Day.Type, df$Holiday, sep = " - ")
 
 df$Weekday <- factor (
   df$Weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 ) 
 
+#Checks
 table(df$Weekday)
 table(df$Day.Type)
 table(df$Holiday)
 
-#Summary Stats for 
+################################################################################################################
+# Summary Statistics
+################################################################################################################
 aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
 aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
-aggregate(Count ~ Weekday, data = df, mean) # mean of days
+avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
 
 
-############################
+################################################################################################################
 # PLOTS
+################################################################################################################
+
 ############################
+# WEATHER/SEASON PLOTS
+############################
+
 # Create a new data frame where we group rental count by date and season
 daily_df <- aggregate(Count ~ Date + Seasons,
           data=df, sum)
@@ -165,39 +174,35 @@ reg_panel1
 # ggsave("reg_panel1.png", plot=reg_panel1)
 
 
-# Bike rents Weekdays vs Weekends##########################################################
+############################
+# Weekday/Holiday PLOTS
+############################
 
-# box plot----------------------------------------------
+#boxplot of bike rentals by type of day
 box2 <- ggplot(
   df, aes(x = Day.Type, y = Count, fill = Day.Type)
 ) + 
   geom_boxplot() + 
   labs(
     title = "Hourly Bike Rentals: Type of Day",
+    x = "Day Type",
     y = "Rental Count"
   )
 box2
 
-# linear regression plot--------------------------------
-# reg3 <- ggplot(
-#   df,
-#   aes(
-#     x= Date
-#     y=Count
-#   )
-# ) +
-#   geom_point(alpha=0.6, color="steelblue") +
-#   geom_smooth(method="lm", se=FALSE, color="darkred") +
-#   labs(
-#     title="Temperature vs Hourly Rental Count",
-#     x="Temperature (˚C)",
-#     y="Rental Count"
-#   )
-reg3
-# Save linear regression plot as a png
-# ggsave("regplot1.png", plot=reg1)
+#graph of bike rental trends by day of week
+trend_dayweek <- ggplot(
+  avg_weekday, aes(x = Weekday, y = Count, group = 1)
+) + geom_line(color = "steelblue", linewidth = 1) +
+  geom_point(size = 3, color = "darkred") +
+  labs (
+    title = "Bike Rental Trends by Day of the Week",
+    x = "Day of Week",
+    y = "Average Bike Rental Count"
+  )
+trend_dayweek
 
-# Bike rents Holidays ####################################################################
+# Bike rents Holidays
 box3 <- ggplot(
   df, aes(x = Holiday, y = Count, fill = Holiday)
 ) + 
@@ -209,15 +214,10 @@ box3 <- ggplot(
   )
 box3
 
-
-# Save box plot as a png
-# ggsave("boxplot2.png", plot=box1)
-
-# Bike rentals Weekdays vs Weekends & Holidays ##########################################################
-df$Day.Holiday <- paste(df$Day.Type, df$Holiday, sep = " - ")
+# Bike rentals Weekdays vs Weekends & Holidays
 
 box4 <- ggplot(
-  df, aes(x = Holiday, y = Count, fill = Day.Holiday)
+  df, aes(x = Day.Holiday, y = Count, fill = Day.Holiday)
 ) + 
   geom_boxplot() + 
   labs(
@@ -227,21 +227,21 @@ box4 <- ggplot(
   )
 box4
 
-
-# Save box plot as a png
-# ggsave("boxplot2.png", plot=box1)
-
-
 ############################
+# Temporal Patterns PLOTS
+############################
+
+
+################################################################################################################
 # ANALYSIS
-############################
+################################################################################################################
+
 # 95% confidence interval for the mean hourly rental count
 t.test(df$Count)$conf.int
 
-# Test whether mean hourly bike rentals differ between Holiday and no Holiday
-t.test(Count ~ Holiday, data=df)
-
-#multiple regression
+############################
+# WEATHER
+############################
 weather <- lm(
   Count ~ Temp.c + Humidity + Wind.Speed.m/s +
     Visibility.10m + Rainfall.mm + Snowfall.cm,
@@ -249,4 +249,20 @@ weather <- lm(
 )
 
 summary(weather)
+
+############################
+# Holiday/Weekends
+############################
+
+#Test whether mean hourly bike rentals differ between Day Types
+t.test(Count ~ Day.Type, data = df)
+#Test whether mean hourly bike rentals differ between Holiday Status
+t.test(Count ~ Holiday, data = df)
+
+#ANOVA###################################
+model1 <- aov(Count ~ Day.Type * Holiday, data = df)
+summary(model1)
+
+
+
 
