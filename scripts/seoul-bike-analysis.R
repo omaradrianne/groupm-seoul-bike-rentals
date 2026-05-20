@@ -165,11 +165,69 @@ reg_panel1
 # ggsave("reg_panel1.png", plot=reg_panel1)
 
 
-# Bike rents Weekdays vs Weekends################
+# Bike rents Weekdays vs Weekends##########################################################
+
+# box plot----------------------------------------------
 box2 <- ggplot(
   df, aes(x = Day.Type, y = Count, fill = Day.Type)
-) + geom_boxplot()
+) + 
+  geom_boxplot() + 
+  labs(
+    title = "Hourly Bike Rentals: Type of Day",
+    y = "Rental Count"
+  )
 box2
+
+# linear regression plot--------------------------------
+# reg3 <- ggplot(
+#   df,
+#   aes(
+#     x= Date
+#     y=Count
+#   )
+# ) +
+#   geom_point(alpha=0.6, color="steelblue") +
+#   geom_smooth(method="lm", se=FALSE, color="darkred") +
+#   labs(
+#     title="Temperature vs Hourly Rental Count",
+#     x="Temperature (˚C)",
+#     y="Rental Count"
+#   )
+reg3
+# Save linear regression plot as a png
+# ggsave("regplot1.png", plot=reg1)
+
+# Bike rents Holidays ####################################################################
+box3 <- ggplot(
+  df, aes(x = Holiday, y = Count, fill = Holiday)
+) + 
+  geom_boxplot() + 
+  labs(
+    title = "Hourly Bike Rentals: Holidays",
+    x = "Holiday Status",
+    y = "Rental Count"
+  )
+box3
+
+
+# Save box plot as a png
+# ggsave("boxplot2.png", plot=box1)
+
+# Bike rentals Weekdays vs Weekends & Holidays ##########################################################
+df$Day.Holiday <- paste(df$Day.Type, df$Holiday, sep = " - ")
+
+box4 <- ggplot(
+  df, aes(x = Holiday, y = Count, fill = Day.Holiday)
+) + 
+  geom_boxplot() + 
+  labs(
+    title = "Hourly Bike Rentals by Day Type & Holiday Status",
+    x = "Day Type & Holiday Status",
+    y = "Rental Count"
+  )
+box4
+
+
 # Save box plot as a png
 # ggsave("boxplot2.png", plot=box1)
 
