@@ -15,9 +15,9 @@
 # -
 ################################################################################
 
-###############################################################################################################
+################################################################################
 # SETUP
-###############################################################################################################
+################################################################################
 
 # (Optional but recommended) start clean:
 rm(list = ls())
@@ -42,20 +42,22 @@ list.files()
 # Read CSV into a data frame
 df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 
-################################################################################################################
+################################################################################
 # EDA + Cleaning
-################################################################################################################
+################################################################################
 # Rename variables
 colnames(df)
-colnames(df)[2] <- "Count" # RENTAL COUNT
-colnames(df)[4] <- "Temp.c"
-colnames(df)[5] <- "Humidity"
-colnames(df)[6] <- "Wind.Speed.m/s"
-colnames(df)[7] <- "Visibility.10m"
-colnames(df)[8] <- "Dew.Point.Temp.c"
-colnames(df)[9] <- "Solar.Radiation.MJ.m2"
-colnames(df)[10] <- "Rainfall.mm"
-colnames(df)[11] <- "Snowfall.cm"
+colnames(df)[c(2,4:11)] <- c(
+  "Count", # RENTAL COUNT
+  "Temp.c",
+  "Humidity",
+  "Wind.Speed.m/s",
+  "Visibility.10m",
+  "Dew.Point.Temp.c",
+  "Solar.Radiation.MJ.m2",
+  "Rainfall.mm",
+  "Snowfall.cm"
+)
 colnames(df)
 
 # Inspection
@@ -66,6 +68,7 @@ summary(df)
 # Correlation inspection
 cor(df$Temp.c, df$Count)
 cor(df$Humidity, df$Count)
+cor(df$Hour, df$Count)
 
 #Date/Week Cleaning
 df$Date <- as.Date(df$Date, format="%d/%m/%Y")
@@ -87,25 +90,35 @@ df$Weekday <- factor (
 table(df$Weekday)
 table(df$Day.Type)
 table(df$Holiday)
+head(df)
 
-################################################################################################################
+################################################################################
 # Summary Statistics
-################################################################################################################
-avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
+################################################################################
+# mean bike rentals by season
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean)
 
-aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
-aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
-avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
-aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
+# mean of bike rentals separated by weekday and weekend
+aggregate(Count ~ Day.Type, data = df, mean) 
 
-avg_windSpeed <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean)
-avg_windSpeedDay <- aggregate(`Visibility.10m` ~ Date, data = df, mean)
+# means rental count by holidays vs non-holidays
+aggregate(Count ~ Holiday, data = df, mean) 
 
+# mean rental count by weekday
+avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) 
+
+# mean rental count by day type and holiday status
+aggregate(Count ~ Day.Type + Holiday, data = df, mean) 
+
+avg_windSpeed <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) # PLEASE CHECK
+avg_windSpeedDay <- aggregate(`Visibility.10m` ~ Date, data = df, mean) # PLEASE CHECK
+
+# mean rental count by hour and day type
 avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
 
-################################################################################################################
+################################################################################
 # PLOTS
-################################################################################################################
+################################################################################
 
 ############################
 # WEATHER/SEASON PLOTS
@@ -153,7 +166,7 @@ box2 <- ggplot(
   )
 box2
 
-#Graph of Visbility by Season
+# Graph of Visbility by Season
 trend_visibilitySeason <- ggplot(
   avg_windSpeed, aes(x = Seasons, y = Visibility.10m, group = 1)
 ) + geom_line(color = "cyan3", linewidth = 1) +
@@ -293,9 +306,9 @@ trend_hourDay <- ggplot(
 trend_hourDay
 
 
-################################################################################################################
+################################################################################
 # ANALYSIS
-################################################################################################################
+################################################################################
 
 # 95% confidence interval for the mean hourly rental count
 t.test(df$Count)$conf.int
