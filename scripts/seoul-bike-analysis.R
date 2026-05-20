@@ -70,6 +70,28 @@ summary(df)
 cor(df$Temp.c, df$Count)
 cor(df$Humidity, df$Count)
 
+#Date/Week Cleaning
+df$Date <- as.Date(df$Date, format="%d/%m/%Y")
+df$Weekday <- weekdays(df$Date)
+
+df$Day.Type <- "Weekday" # make all days weekdays
+df$Day.Type[df$Weekday == "Saturday" | df$Weekday == "Sunday"] <- "Weekend" # set weekends
+
+df$Weekday <- factor (
+  df$Weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+) 
+
+table(df$Weekday)
+table(df$Day.Type)
+table(df$Holiday)
+
+#Summary Stats for 
+aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
+aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
+aggregate(Count ~ Weekday, data = df, mean) # mean of days
+aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
+
+
 ############################
 # PLOTS
 ############################
@@ -142,6 +164,16 @@ reg_panel1 = reg1 + reg2
 reg_panel1
 # ggsave("reg_panel1.png", plot=reg_panel1)
 
+
+# Bike rents Weekdays vs Weekends################
+box2 <- ggplot(
+  df, aes(x = Day.Type, y = Count, fill = Day.Type)
+) + geom_boxplot()
+box2
+# Save box plot as a png
+# ggsave("boxplot2.png", plot=box1)
+
+
 ############################
 # ANALYSIS
 ############################
@@ -150,3 +182,13 @@ t.test(df$Count)$conf.int
 
 # Test whether mean hourly bike rentals differ between Holiday and no Holiday
 t.test(Count ~ Holiday, data=df)
+
+#multiple regression
+weather <- lm(
+  Count ~ Temp.c + Humidity + Wind.Speed.m/s +
+    Visibility.10m + Rainfall.mm + Snowfall.cm,
+  data = df
+)
+
+summary(weather)
+
