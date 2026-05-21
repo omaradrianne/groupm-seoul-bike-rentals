@@ -287,8 +287,6 @@ box5
 # Temporal Patterns PLOTS
 ############################
 
-
-
 trend_time <- ggplot(
   avg_hour, aes(x = Hour, y = Count)
 ) + geom_line(color = "coral2", linewidth = 1) +
