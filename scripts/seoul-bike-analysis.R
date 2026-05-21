@@ -46,15 +46,17 @@ df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 ################################################################################
 # Rename variables
 colnames(df)
-colnames(df)[2] <- "Count" # RENTAL COUNT
-colnames(df)[4] <- "Temp.c"
-colnames(df)[5] <- "Humidity"
-colnames(df)[6] <- "Wind.Speed.m/s"
-colnames(df)[7] <- "Visibility.10m"
-colnames(df)[8] <- "Dew.Point.Temp.c"
-colnames(df)[9] <- "Solar.Radiation.MJ.m2"
-colnames(df)[10] <- "Rainfall.mm"
-colnames(df)[11] <- "Snowfall.cm"
+colnames(df)[c(2,4:11)] <- c(
+  "Count", # RENTAL COUNT
+  "Temp.c",
+  "Humidity",
+  "Wind.Speed.m/s",
+  "Visibility.10m",
+  "Dew.Point.Temp.c",
+  "Solar.Radiation.MJ.m2",
+  "Rainfall.mm",
+  "Snowfall.cm"
+)
 colnames(df)
 
 # Inspection
@@ -65,6 +67,7 @@ summary(df)
 # Correlation inspection
 cor(df$Temp.c, df$Count)
 cor(df$Humidity, df$Count)
+cor(df$Hour, df$Count)
 
 #Date/Week Cleaning
 df$Date <- as.Date(df$Date, format="%d/%m/%Y")
@@ -86,25 +89,41 @@ df$Weekday <- factor (
 table(df$Weekday)
 table(df$Day.Type)
 table(df$Holiday)
+head(df)
 
 ################################################################################
 # Summary Statistics
 ################################################################################
 
-#seasonal/weather averages
+#mean of bike rentals by season
 avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
-avg_Visibility <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) # mean visibility by season
 
-#day/holiday averages
-aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
-aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
-avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
-aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
 
+
+aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whethe
+
+# mean bike rentals by season
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean)
+
+# mean visibility by season
+avg_Visibility <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) 
+
+# mean of bike rentals separated by weekday and weekend
+aggregate(Count ~ Day.Type, data = df, mean) 
+
+# means rental count by holidays vs non-holidays
+aggregate(Count ~ Holiday, data = df, mean) 
+
+# mean rental count by weekday
+avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) 
+
+# mean rental count by day type and holiday status
+aggregate(Count ~ Day.Type + Holiday, data = df, mean) 
 
 # trends on rentals based on time/hour of day
 avg_hour <- aggregate(Count ~ Hour, data = df, mean)
-# trends on rentals based on time/hour of day AND Day type
+
+# mean rental count by hour and day type
 avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
 # top renting hours
 avg_hour[order(-avg_hour$Count), ]
@@ -160,7 +179,7 @@ box2 <- ggplot(
   )
 box2
 
-#Graph of Visbility by Season
+# Graph of Visbility by Season
 trend_visibilitySeason <- ggplot(
   avg_Visibility, aes(x = Seasons, y = Visibility.10m, group = 1)
 ) + geom_line(color = "cyan3", linewidth = 1) +
@@ -301,7 +320,7 @@ trend_hourDay
 
 ################################################################################
 # ANALYSIS
-################################################################################
+################################################################################################################
 
 # 95% confidence interval for the mean hourly rental count
 t.test(df$Count)$conf.int
