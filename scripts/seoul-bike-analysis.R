@@ -15,10 +15,9 @@
 # -
 ################################################################################
 
-###############################################################################################################
+################################################################################
 # SETUP
-###############################################################################################################
-
+################################################################################
 # (Optional but recommended) start clean:
 rm(list = ls())
 
@@ -42,9 +41,9 @@ list.files()
 # Read CSV into a data frame
 df <- read.csv('data/SeoulBikeData.csv', fileEncoding = "CP949")
 
-################################################################################################################
+################################################################################
 # EDA + Cleaning
-################################################################################################################
+################################################################################
 # Rename variables
 colnames(df)
 colnames(df)[2] <- "Count" # RENTAL COUNT
@@ -88,24 +87,32 @@ table(df$Weekday)
 table(df$Day.Type)
 table(df$Holiday)
 
-################################################################################################################
+################################################################################
 # Summary Statistics
-################################################################################################################
-avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
+################################################################################
 
+#seasonal/weather averages
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
+avg_Visibility <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) # mean visibility by season
+
+#day/holiday averages
 aggregate(Count ~ Day.Type, data = df, mean) # mean of bike rentals separated by weekday and weekend
 aggregate(Count ~ Holiday, data = df, mean) # means of holidays and non-holidays
 avg_weekday <- aggregate(Count ~ Weekday, data = df, mean) # mean of days
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whether they are holidays
 
-avg_windSpeed <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean)
-avg_windSpeedDay <- aggregate(`Visibility.10m` ~ Date, data = df, mean)
 
+# trends on rentals based on time/hour of day
+avg_hour <- aggregate(Count ~ Hour, data = df, mean)
+# trends on rentals based on time/hour of day AND Day type
 avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
+# top renting hours
+avg_hour[order(-avg_hour$Count), ]
 
-################################################################################################################
+
+################################################################################
 # PLOTS
-################################################################################################################
+################################################################################
 
 ############################
 # WEATHER/SEASON PLOTS
@@ -118,7 +125,7 @@ daily_df <- aggregate(Count ~ Date + Seasons,
 # Inspection
 head(daily_df)
 
-# Box plot
+# Box plot: Bike Rentals & Season
 box1 <- ggplot(
   daily_df,
   aes(
@@ -155,7 +162,7 @@ box2
 
 #Graph of Visbility by Season
 trend_visibilitySeason <- ggplot(
-  avg_windSpeed, aes(x = Seasons, y = Visibility.10m, group = 1)
+  avg_Visibility, aes(x = Seasons, y = Visibility.10m, group = 1)
 ) + geom_line(color = "cyan3", linewidth = 1) +
   geom_point(size = 3, color = "coral2") +
   labs (
@@ -267,8 +274,7 @@ box5
 # Temporal Patterns PLOTS
 ############################
 
-# trends on rentals based on time/hour of day
-avg_hour <- aggregate(Count ~ Hour, data = df, mean)
+
 
 trend_time <- ggplot(
   avg_hour, aes(x = Hour, y = Count)
@@ -293,9 +299,9 @@ trend_hourDay <- ggplot(
 trend_hourDay
 
 
-################################################################################################################
+################################################################################
 # ANALYSIS
-################################################################################################################
+################################################################################
 
 # 95% confidence interval for the mean hourly rental count
 t.test(df$Count)$conf.int
@@ -303,6 +309,8 @@ t.test(df$Count)$conf.int
 ############################
 # WEATHER
 ############################
+
+#regression
 weather <- lm(
   Count ~ Temp.c + Humidity + `Wind.Speed.m/s` +
     Visibility.10m + Rainfall.mm + Snowfall.cm,
@@ -338,7 +346,7 @@ t.test(Count ~ Holiday, data = df)
 
 #ANOVA###################################
 
-#to see if avg rentals are different depending on day type and holiday
+#TWO WAY AOV to see if avg rentals are different depending on day type and holiday
 model2 <- aov(Count ~ Day.Type * Holiday, data = df)
 summary(model2)
 
@@ -346,11 +354,33 @@ summary(model2)
 model3 <- aov(Count ~ Weekday, data = df)
 summary(model3)
 
+
 ############################
 # Temporal (time of day)
 ############################
 
+#Regression
+time <- lm(Count ~ Hour, data = df)
+summary(time)
 
+#ANOVA to see if avg rentals are different depending on time
+model4 <- aov(Count ~ as.factor(Hour), data = df)
+summary(model4)
+
+#############################
+# Strongest Associations (Q4)
+#############################
+
+predictorModel <- lm(Count ~ 
+                       Temp.c + Humidity + `Wind.Speed.m/s`+ Visibility.10m + Rainfall.mm + Snowfall.cm + 
+                       Day.Type + Seasons + Holiday + Hour, 
+                       data = df)
+summary(predictorModel)
+
+# Sorted Strongest Predictors using T-Value from above
+
+predictorStrongest <- summary(predictorModel)$coefficients
+predictorStrongest[order(abs(predictorStrongest[, "t value"]), decreasing = TRUE),]
 
 
 
