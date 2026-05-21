@@ -18,6 +18,7 @@
 ################################################################################
 # SETUP
 ################################################################################
+
 # (Optional but recommended) start clean:
 rm(list = ls())
 
@@ -94,16 +95,8 @@ head(df)
 ################################################################################
 # Summary Statistics
 ################################################################################
-
 #mean of bike rentals by season
-avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) # mean bike rentals by season
-
-
-
-aggregate(Count ~ Day.Type + Holiday, data = df, mean) # mean of days and whethe
-
-# mean bike rentals by season
-avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean)
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) 
 
 # mean visibility by season
 avg_Visibility <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) 
@@ -120,11 +113,12 @@ avg_weekday <- aggregate(Count ~ Weekday, data = df, mean)
 # mean rental count by day type and holiday status
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) 
 
-# trends on rentals based on time/hour of day
+# mean rentals based on time/hour of day
 avg_hour <- aggregate(Count ~ Hour, data = df, mean)
 
 # mean rental count by hour and day type
 avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
+
 # top renting hours
 avg_hour[order(-avg_hour$Count), ]
 
