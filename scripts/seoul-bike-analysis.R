@@ -95,8 +95,12 @@ head(df)
 ################################################################################
 # Summary Statistics
 ################################################################################
-# mean bike rentals by season
-avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean)
+
+#mean of bike rentals by season
+avg_Seasons <-aggregate(Count ~ Seasons, data = df, mean) 
+
+# mean visibility by season
+avg_Visibility <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) 
 
 # mean of bike rentals separated by weekday and weekend
 aggregate(Count ~ Day.Type, data = df, mean) 
@@ -110,11 +114,14 @@ avg_weekday <- aggregate(Count ~ Weekday, data = df, mean)
 # mean rental count by day type and holiday status
 aggregate(Count ~ Day.Type + Holiday, data = df, mean) 
 
-avg_windSpeed <- aggregate(`Visibility.10m` ~ Seasons, data = df, mean) # PLEASE CHECK
-avg_windSpeedDay <- aggregate(`Visibility.10m` ~ Date, data = df, mean) # PLEASE CHECK
+# mean rentals based on time/hour of day
+avg_hour <- aggregate(Count ~ Hour, data = df, mean)
 
 # mean rental count by hour and day type
 avg_hour_day <- aggregate(Count ~ Hour + Day.Type, data = df, mean)
+
+# top renting hours
+avg_hour[order(-avg_hour$Count), ]
 
 ################################################################################
 # PLOTS
@@ -131,7 +138,7 @@ daily_df <- aggregate(Count ~ Date + Seasons,
 # Inspection
 head(daily_df)
 
-# Box plot
+# Box plot: Bike Rentals & Season
 box1 <- ggplot(
   daily_df,
   aes(
@@ -168,7 +175,7 @@ box2
 
 # Graph of Visbility by Season
 trend_visibilitySeason <- ggplot(
-  avg_windSpeed, aes(x = Seasons, y = Visibility.10m, group = 1)
+  avg_Visibility, aes(x = Seasons, y = Visibility.10m, group = 1)
 ) + geom_line(color = "cyan3", linewidth = 1) +
   geom_point(size = 3, color = "coral2") +
   labs (
@@ -280,9 +287,6 @@ box5
 # Temporal Patterns PLOTS
 ############################
 
-# trends on rentals based on time/hour of day
-avg_hour <- aggregate(Count ~ Hour, data = df, mean)
-
 trend_time <- ggplot(
   avg_hour, aes(x = Hour, y = Count)
 ) + geom_line(color = "coral2", linewidth = 1) +
@@ -316,6 +320,8 @@ t.test(df$Count)$conf.int
 ############################
 # WEATHER
 ############################
+
+#regression
 weather <- lm(
   Count ~ Temp.c + Humidity + `Wind.Speed.m/s` +
     Visibility.10m + Rainfall.mm + Snowfall.cm,
@@ -351,7 +357,7 @@ t.test(Count ~ Holiday, data = df)
 
 #ANOVA###################################
 
-#to see if avg rentals are different depending on day type and holiday
+#TWO WAY AOV to see if avg rentals are different depending on day type and holiday
 model2 <- aov(Count ~ Day.Type * Holiday, data = df)
 summary(model2)
 
@@ -359,11 +365,33 @@ summary(model2)
 model3 <- aov(Count ~ Weekday, data = df)
 summary(model3)
 
+
 ############################
 # Temporal (time of day)
 ############################
 
+#Regression
+time <- lm(Count ~ Hour, data = df)
+summary(time)
 
+#ANOVA to see if avg rentals are different depending on time
+model4 <- aov(Count ~ as.factor(Hour), data = df)
+summary(model4)
+
+#############################
+# Strongest Associations (Q4)
+#############################
+
+predictorModel <- lm(Count ~ 
+                       Temp.c + Humidity + `Wind.Speed.m/s`+ Visibility.10m + Rainfall.mm + Snowfall.cm + 
+                       Day.Type + Seasons + Holiday + Hour, 
+                       data = df)
+summary(predictorModel)
+
+# Sorted Strongest Predictors using T-Value from above
+
+predictorStrongest <- summary(predictorModel)$coefficients
+predictorStrongest[order(abs(predictorStrongest[, "t value"]), decreasing = TRUE),]
 
 
 
